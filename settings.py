@@ -4,6 +4,7 @@ DARKGREY = (40, 40, 40)
 LIGHTGREY = (100, 100, 100)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
+BLUE = (0,0,255)
 YELLOW = (255, 255, 0)
 
 # game settings
@@ -19,3 +20,5 @@ GRIDHEIGHT = HEIGHT / TILESIZE
 
 # Player settings
 PLAYER_SPEED = 300
+
+TEAM = ["Azul","Rojo"]
