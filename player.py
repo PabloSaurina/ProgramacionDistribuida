@@ -25,19 +25,20 @@ class Player(pg.sprite.Sprite):
         self.y = y * TILESIZE
 
     def get_keys(self):
-        self.vx, self.vy = 0, 0
-        keys = pg.key.get_pressed()
-        if keys[pg.K_LEFT] or keys[pg.K_a]:
-            self.vx = -PLAYER_SPEED
-        if keys[pg.K_RIGHT] or keys[pg.K_d]:
-            self.vx = PLAYER_SPEED
-        if keys[pg.K_UP] or keys[pg.K_w]:
-            self.vy = -PLAYER_SPEED
-        if keys[pg.K_DOWN] or keys[pg.K_s]:
-            self.vy = PLAYER_SPEED
-        if self.vx != 0 and self.vy != 0:
-            self.vx *= 0.7071
-            self.vy *= 0.7071
+        if(self.game.team == self.team):
+            self.vx, self.vy = 0, 0
+            keys = pg.key.get_pressed()
+            if keys[pg.K_LEFT] or keys[pg.K_a]:
+                self.vx = -PLAYER_SPEED
+            if keys[pg.K_RIGHT] or keys[pg.K_d]:
+                self.vx = PLAYER_SPEED
+            if keys[pg.K_UP] or keys[pg.K_w]:
+                self.vy = -PLAYER_SPEED
+            if keys[pg.K_DOWN] or keys[pg.K_s]:
+                self.vy = PLAYER_SPEED
+            if self.vx != 0 and self.vy != 0:
+                self.vx *= 0.7071
+                self.vy *= 0.7071
 
     def collide_with_walls(self, dir):
         if dir == 'x':
@@ -71,6 +72,8 @@ class Player(pg.sprite.Sprite):
     def get_pos(self):
         return([self.x,self.y])
 
+
+
 class Wall(pg.sprite.Sprite):
     def __init__(self, game, x, y):
         self.groups = game.all_sprites, game.walls
@@ -102,6 +105,7 @@ class Game():
                 elif tile == 'Q':
                     self.player2 = Player(self, col, row,1)
         self.players = [self.player1,self.player2]
+        self.team = 0
 
     def load_data(self):
         game_folder = path.dirname(__file__)
@@ -176,6 +180,7 @@ class Display():
     
     def __init__(self,game,team):
         self.game = game
+        self.game.team = team
         self.player = self.game.players[team]
         self.all_sprites = self.game.get_all_sprites()
         self.walls =self.game. get_walls()
