@@ -7,69 +7,42 @@ from settings import*
 from os import path
 from tilemap import *
 
+TILESIZE = 32
+PLAYER_SPEED = 200
 
-class Player(pg.sprite.Sprite):
-    def __init__(self, game, x, y,team):
+
+class Player():
+    def __init__(self, g_team, x, y,team,dt):
         self.team = team
-        self.groups = game.all_sprites
-        pg.sprite.Sprite.__init__(self, self.groups)
+        self.gteam = g_team
+        self.dt = dt
+        self.vx, self.vy = 0, 0
+        self.x = x * TILESIZE
+        self.y = y * TILESIZE
+    
+    def get_pos(self):
+        return([self.x,self.y])
+    
+    def set_pos(self,pos):
+        self.x = pos[0]
+        self.y = pos[1]
+
+class PlayerSprite(pg.sprite.Sprite):
+    def __init__(self,player,game):
         self.game = game
+        self.player = player
+        self.groups = self.game.all_sprites
+        pg.sprite.Sprite.__init__(self, self.groups)
         self.image = pg.Surface((TILESIZE, TILESIZE))
-        if team == 0:
+        if self.player.team == 0:
             self.image.fill(BLUE)
         else:
             self.image.fill(RED)
         self.rect = self.image.get_rect()
-        self.vx, self.vy = 0, 0
-        self.x = x * TILESIZE
-        self.y = y * TILESIZE
-
-    def get_keys(self):
-        self.vx, self.vy = 0, 0
-        keys = pg.key.get_pressed()
-        if keys[pg.K_LEFT] or keys[pg.K_a]:
-            self.vx = -PLAYER_SPEED
-        if keys[pg.K_RIGHT] or keys[pg.K_d]:
-            self.vx = PLAYER_SPEED
-        if keys[pg.K_UP] or keys[pg.K_w]:
-            self.vy = -PLAYER_SPEED
-        if keys[pg.K_DOWN] or keys[pg.K_s]:
-            self.vy = PLAYER_SPEED
-        if self.vx != 0 and self.vy != 0:
-            self.vx *= 0.7071
-            self.vy *= 0.7071
-
-    def collide_with_walls(self, dir):
-        if dir == 'x':
-            hits = pg.sprite.spritecollide(self, self.game.walls, False)
-            if hits:
-                if self.vx > 0:
-                    self.x = hits[0].rect.left - self.rect.width
-                if self.vx < 0:
-                    self.x = hits[0].rect.right
-                self.vx = 0
-                self.rect.x = self.x
-        if dir == 'y':
-            hits = pg.sprite.spritecollide(self, self.game.walls, False)
-            if hits:
-                if self.vy > 0:
-                    self.y = hits[0].rect.top - self.rect.height
-                if self.vy < 0:
-                    self.y = hits[0].rect.bottom
-                self.vy = 0
-                self.rect.y = self.y
-
+        
     def update(self):
-        self.get_keys()
-        self.x += self.vx * self.game.dt
-        self.y += self.vy * self.game.dt
-        self.rect.x = self.x
-        self.collide_with_walls('x')
-        self.rect.y = self.y
-        self.collide_with_walls('y')
-    
-    def get_pos(self):
-        return([self.x,self.y])
+        self.rect.x = self.player.x
+        self.rect.y = self.player.y
 
 class Wall(pg.sprite.Sprite):
     def __init__(self, game, x, y):
@@ -86,10 +59,13 @@ class Wall(pg.sprite.Sprite):
 
 class Game():
     def __init__(self,manager):
+        self.team = -5
+        self.manager = manager
         self.playing = Value('i',1)
         self.clock = pg.time.Clock()
         self.dt = self.clock.tick(FPS) / 1000
         self.load_data()
+        self.score = manager.list( [0,0] )
         # initialize all variables and do all the setup for a new game
         self.all_sprites = pg.sprite.Group()
         self.walls = pg.sprite.Group()
@@ -98,9 +74,11 @@ class Game():
                 if tile == '1':
                     Wall(self, col, row)
                 elif tile == 'P':
-                    self.player1 = Player(self, col, row,0)
+                    self.player1 = manager.list([Player(self.team, col, row,0,self.dt)])
+                    self.sprite1 = PlayerSprite(self.player1[0],self)
                 elif tile == 'Q':
-                    self.player2 = Player(self, col, row,1)
+                    self.player2 = manager.list([Player(self.team, col, row,1,self.dt)])
+                    self.sprite2 = PlayerSprite(self.player2[0],self)
         self.lock = Lock()
 
     def load_data(self):
@@ -111,7 +89,6 @@ class Game():
         # game loop - set self.playing = False to end the game
         while self.playing.value:
             self.dt = self.clock.tick(FPS) / 1000
-            self.events()
             self.update()
 #            self.draw()
     
@@ -127,40 +104,20 @@ class Game():
     def quit(self):
         pg.quit()
         sys.exit()
+        
+    def stop(self):
+        self.playing.value = 0
 
     def update(self):
-        # update portion of the game loop
         self.all_sprites.update()
-
-    def draw_grid(self):
-        for x in range(0, WIDTH, TILESIZE):
-            pg.draw.line(self.screen, LIGHTGREY, (x, 0), (x, HEIGHT))
-        for y in range(0, HEIGHT, TILESIZE):
-            pg.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
-
-    def draw(self):
-        self.screen.fill(BGCOLOR)
-        self.draw_grid()
-        for sprite in self.all_sprites:
-            self.screen.blit(sprite.image, self.camera.apply(sprite))
-        pg.display.flip()
-
-    def events(self):
-        # catch all events here
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                self.quit()
-            if event.type == pg.KEYDOWN:
-                if event.key == pg.K_ESCAPE:
-                    self.quit()
     
     def is_running(self):
         return self.playing.value == 1
     
     def get_info(self):
         info = {
-            'pos_blue_player': self.player1.get_pos(),
-            'pos_red_player': self.player2.get_pos(),
+            'pos_blue_player': self.player1[0].get_pos(),
+            'pos_red_player': self.player2[0].get_pos(),
 #            'score': list(self.score),
             'is_running': self.playing.value == 1
         }
@@ -171,6 +128,20 @@ class Game():
 
     def show_go_screen(self):
         pass
+    
+    def set_pos_1(self,pos):
+        self.lock.acquire()
+        p = self.player1[0]
+        p.set_pos(pos)
+        self.player1[0] = p
+        self.lock.release()
+    
+    def set_pos_2(self,pos):
+        self.lock.acquire()
+        p = self.player2[0]
+        p.set_pos(pos)
+        self.player2[0] = p
+        self.lock.release()
 
 def player(side, conn, game):
     try:
@@ -182,18 +153,23 @@ def player(side, conn, game):
                 command = conn.recv()
                 if command == "quit":
                     game.stop()
+                elif command[0] == 'a':
+                    game.set_pos_1([int(float(x)) for x in command[1:].split(',')])
+                elif command[0] == 'b':
+                    game.set_pos_2([int(float(x)) for x in command[1:].split(',')])
             conn.send(game.get_info())
     except:
         traceback.print_exc()
         conn.close()
     finally:
         print(f"Game ended {game}")
+        sys.exit()
 
 
 def main(ip_address):
     manager = Manager()
     try:
-        with Listener((ip_address, 6000),
+        with Listener((ip_address, 6020),
                       authkey=b'secret password') as listener:
             n_player = 0
             players = [None, None]
