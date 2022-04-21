@@ -103,7 +103,7 @@ class Bullet():
         self.enable = 1
         self.pt = 0
         self.rot = rot
-        self.pos = vec(x, y) + vec(TILESIZE//3 * 2,TILESIZE//2 + 1).rotate(-self.rot)
+        self.pos = vec(x, y) + vec(TILESIZE//3 * 2,-BULLETSIZE//2).rotate(-self.rot)
         self.dt = dt
         self.vel = vec(BULLET_SPEED, 0).rotate(-self.rot)
     
@@ -194,6 +194,7 @@ class Game():
         self.other_bullets_sprites = []
         self.score = [0,0]
         self.ppoints = 0
+        self.ammo = AMMO
 
     def load_data(self):
         game_folder = path.dirname(__file__)
@@ -246,9 +247,18 @@ class Game():
         keys = pg.key.get_pressed()
         if keys[pg.K_SPACE]:
             now = pg.time.get_ticks()
-            if now - self.last_shot > BULLET_RATE:
-                self.last_shot = now
-                self.create_bullet(self.players[self.team][0].get_pos())
+            if self.ammo < AMMO:
+                if now - self.last_shot > BULLET_RATE:
+                    self.ammo -= 1
+                    if self.ammo == 0:
+                        self.ammo = AMMO
+                    self.last_shot = now
+                    self.create_bullet(self.players[self.team][0].get_pos())
+            else:
+                if now - self.last_shot > BULLET_RATE*4:
+                    self.ammo -= 1
+                    self.last_shot = now
+                    self.create_bullet(self.players[self.team][0].get_pos())
 
     def run(self):
         # game loop - set self.playing = False to end the game
@@ -376,6 +386,8 @@ class Display():
         self.screen.blit(text, (250, 10))
         text = font.render(f"{score[int(not self.team)]}", 1, COLOR[int(not self.team)])
         self.screen.blit(text, (WIDTH-250, 10))
+        text = font.render(f"{self.game.ammo}/6",1,COLOR[self.team])
+        self.screen.blit(text, (10,HEIGHT - 84))
         pg.display.flip()
     
     def analyze_events(self):
