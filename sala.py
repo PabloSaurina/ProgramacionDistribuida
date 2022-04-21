@@ -7,9 +7,6 @@ from settings import*
 from os import path
 from tilemap import *
 
-TILESIZE = 32
-PLAYER_SPEED = 200
-
 
 class Player():
     def __init__(self, g_team, x, y,team,dt):
@@ -19,13 +16,15 @@ class Player():
         self.vx, self.vy = 0, 0
         self.x = x * TILESIZE
         self.y = y * TILESIZE
+        self.rot = 0
     
     def get_pos(self):
-        return([self.x,self.y])
+        return([self.x,self.y,self.rot])
     
     def set_pos(self,pos):
         self.x = pos[0]
         self.y = pos[1]
+        self.rot = pos[2]
 
 class PlayerSprite(pg.sprite.Sprite):
     def __init__(self,player,game):
@@ -43,6 +42,7 @@ class PlayerSprite(pg.sprite.Sprite):
     def update(self):
         self.rect.x = self.player.x
         self.rect.y = self.player.y
+
 
 class Wall(pg.sprite.Sprite):
     def __init__(self, game, x, y):
@@ -79,6 +79,8 @@ class Game():
                 elif tile == 'Q':
                     self.player2 = manager.list([Player(self.team, col, row,1,self.dt)])
                     self.sprite2 = PlayerSprite(self.player2[0],self)
+        self.bullets1 = manager.list([[]])
+        self.bullets2 = manager.list([[]])
         self.lock = Lock()
 
     def load_data(self):
@@ -118,8 +120,10 @@ class Game():
         info = {
             'pos_blue_player': self.player1[0].get_pos(),
             'pos_red_player': self.player2[0].get_pos(),
-#            'score': list(self.score),
-            'is_running': self.playing.value == 1
+            'bullets1': self.bullets1[0],
+            'bullets2': self.bullets2[0],
+            'is_running': self.playing.value == 1,
+            'score': [self.score[0],self.score[1]]
         }
         return info
 
@@ -142,6 +146,19 @@ class Game():
         p.set_pos(pos)
         self.player2[0] = p
         self.lock.release()
+    
+    def set_bullets(self,bullets,team):
+        self.lock.acquire()
+        if team:
+            self.bullets2[0] = bullets
+        else:
+            self.bullets1[0] = bullets
+        self.lock.release()
+    
+    def set_score(self,score,team):
+        self.lock.acquire()
+        self.score[team] = score
+        self.lock.release()
 
 def player(side, conn, game):
     try:
@@ -157,6 +174,20 @@ def player(side, conn, game):
                     game.set_pos_1([int(float(x)) for x in command[1:].split(',')])
                 elif command[0] == 'b':
                     game.set_pos_2([int(float(x)) for x in command[1:].split(',')])
+                elif command[0] == 'c':
+                    if len(command) > 1:
+                        game.set_bullets([[float(y) for y in x.split('P')] for x in command[1:].split(',')],0)
+                    else:
+                        game.set_bullets([],0)
+                elif command[0] == 'd':
+                    if len(command) > 1:
+                        game.set_bullets([[float(y) for y in x.split('P')] for x in command[1:].split(',')],1)
+                    else:
+                        game.set_bullets([],1)
+                elif command[0] == 'e':
+                    game.set_score(int(command[1:]),0)
+                elif command[0] == 'f':
+                    game.set_score(int(command[1:]),1)
             conn.send(game.get_info())
     except:
         traceback.print_exc()
