@@ -81,6 +81,7 @@ class Game():
                     self.sprite2 = PlayerSprite(self.player2[0],self)
         self.bullets1 = manager.list([[]])
         self.bullets2 = manager.list([[]])
+        self.health = manager.list([100,100])
         self.lock = Lock()
 
     def load_data(self):
@@ -123,7 +124,8 @@ class Game():
             'bullets1': self.bullets1[0],
             'bullets2': self.bullets2[0],
             'is_running': self.playing.value == 1,
-            'score': [self.score[0],self.score[1]]
+            'score': [self.score[0],self.score[1]],
+            'health': [self.health[0],self.health[1]]
         }
         return info
 
@@ -159,6 +161,11 @@ class Game():
         self.lock.acquire()
         self.score[team] = score
         self.lock.release()
+    
+    def set_health(self,health,team):
+        self.lock.acquire()
+        self.health[team] = health
+        self.lock.release()
 
 def player(side, conn, game):
     try:
@@ -188,6 +195,10 @@ def player(side, conn, game):
                     game.set_score(int(command[1:]),0)
                 elif command[0] == 'f':
                     game.set_score(int(command[1:]),1)
+                elif command[0] == 'g':
+                    game.set_health(int(command[1:]),1)
+                elif command[0] == 'h':
+                    game.set_health(int(command[1:]),0)
             conn.send(game.get_info())
     except:
         traceback.print_exc()
@@ -228,6 +239,6 @@ if __name__=='__main__':
     if len(sys.argv)>1:
         ip_address = sys.argv[1]
     if len(sys.argv)>2:
-        port=sys.argv[2]
+        port = int(sys.argv[2])
 
     main(ip_address,port)

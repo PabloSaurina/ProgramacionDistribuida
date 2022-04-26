@@ -6,6 +6,7 @@ import pygame as pg
 from settings import*
 from os import path
 from tilemap import *
+from random import randrange
 vec = pg.math.Vector2
 
 def collide_hit_rect(one, two):
@@ -161,7 +162,7 @@ class Wall(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.image = pg.Surface((TILESIZE, TILESIZE))
-        self.image.fill(GREEN)
+        self.image.fill(WALLCOLOR)
         self.rect = self.image.get_rect()
         self.x = x
         self.y = y
@@ -196,6 +197,9 @@ class Game():
         self.other_bullets = []
         self.other_bullets_sprites = []
         self.score = [0,0]
+        self.max_health = 100
+        self.health = self.max_health
+        self.enemy_health = self.max_health
         self.ppoints = 0
         self.ammo = AMMO
 
@@ -215,9 +219,16 @@ class Game():
         sp_bull = Bullet_sprite(bull,self)
         self.other_bullets_sprites.append(sp_bull)
     
+    def update_health(self):
+        damage = randrange(36) + 20
+        self.enemy_health -= damage
+        if self.enemy_health <= 0:
+            self.enemy_health = self.max_health
+            self.ppoints += 1
+    
     def elim_bull(self,a,b,i):
         if a[i].pt == 1:
-            self.ppoints += 1
+            self.update_health()
         del a[i]
         b[i].kill()
         del b[i]
@@ -291,6 +302,7 @@ class Game():
         self.get_keys()
         self.playing = info['is_running']
         self.score = info['score']
+        self.health = info['health'][self.team]
         if self.team == 0:
             self.player1[0].update(self.sprite1,self.walls)
             self.player2[0].set_pos(info['pos_red_player'])
@@ -391,6 +403,8 @@ class Display():
         self.screen.blit(text, (WIDTH-250, 10))
         text = font.render(f"{self.game.ammo}/3",1,COLOR[self.team])
         self.screen.blit(text, (10,HEIGHT - 84))
+        text = font.render(f"{self.game.health}/{self.game.max_health} HP",1,COLOR[self.team])
+        self.screen.blit(text, (WIDTH - 300,HEIGHT - 84))
         pg.display.flip()
     
     def analyze_events(self):
@@ -403,10 +417,12 @@ class Display():
             events.append( 'a' + ','.join([str(x) for x in self.game.player1[0].get_pos()]) )
             events.append( 'c' + ','.join(['P'.join([str(x) for x in y]) for y in self.game.get_bullets_pos()]))
             events.append( 'e' + str(self.game.ppoints))
+            events.append( 'g' + str(self.game.enemy_health))
         if self.team == 1:
             events.append( 'b' + ','.join([str(x) for x in self.game.player2[0].get_pos()]) )
             events.append( 'd' + ','.join(['P'.join([str(x) for x in y]) for y in self.game.get_bullets_pos()]))
             events.append( 'f' + str(self.game.ppoints))
+            events.append( 'h' + str(self.game.enemy_health))
         return events
         
     @staticmethod
