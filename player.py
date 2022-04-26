@@ -205,7 +205,7 @@ class Game():
 
     def load_data(self):
         game_folder = path.dirname(__file__)
-        self.map = Map(path.join(game_folder, 'map2.txt'))
+        self.map = Map(path.join(game_folder, 'map3.txt'))
     
     def create_bullet(self,pos):
         bull = Bullet(pos[0],pos[1],pos[2],self.dt)
