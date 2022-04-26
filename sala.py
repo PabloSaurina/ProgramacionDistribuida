@@ -197,10 +197,10 @@ def player(side, conn, game):
         sys.exit()
 
 
-def main(ip_address):
+def main(ip_address,port):
     manager = Manager()
     try:
-        with Listener((ip_address, 6020),
+        with Listener((ip_address, port),
                       authkey=b'secret password') as listener:
             n_player = 0
             players = [None, None]
@@ -224,7 +224,10 @@ def main(ip_address):
 
 if __name__=='__main__':
     ip_address = "127.0.0.1"
+    port = 7000
     if len(sys.argv)>1:
         ip_address = sys.argv[1]
+    if ñen(sys.argv)>2:
+        port=sys.argv[2]
 
-    main(ip_address)
+    main(ip_address,port)

@@ -411,9 +411,9 @@ class Display():
         pg.quit()
         
 
-def main(ip_address):
+def main(ip_address,port):
     try:
-        with Client((ip_address, 6020), authkey=b'secret password') as conn:
+        with Client((ip_address, port), authkey=b'secret password') as conn:
             game = Game()
             team,gameinfo = conn.recv()
             print(f"I am playing {TEAM[team]}")
@@ -438,6 +438,9 @@ def main(ip_address):
 
 if __name__=="__main__":
     ip_address = "127.0.0.1"
+    port=7000
     if len(sys.argv)>1:
         ip_address = sys.argv[1]
-    main(ip_address)
+    if len(sys.argv)>2:
+        port=sys.argv[2]
+    main(ip_address,port)
