@@ -386,7 +386,7 @@ class Display():
         self.screen.blit(text, (250, 10))
         text = font.render(f"{score[int(not self.team)]}", 1, COLOR[int(not self.team)])
         self.screen.blit(text, (WIDTH-250, 10))
-        text = font.render(f"{self.game.ammo}/6",1,COLOR[self.team])
+        text = font.render(f"{self.game.ammo}/3",1,COLOR[self.team])
         self.screen.blit(text, (10,HEIGHT - 84))
         pg.display.flip()
     
