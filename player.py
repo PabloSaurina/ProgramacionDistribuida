@@ -442,5 +442,5 @@ if __name__=="__main__":
     if len(sys.argv)>1:
         ip_address = sys.argv[1]
     if len(sys.argv)>2:
-        port=sys.argv[2]
+        port = int(sys.argv[2])
     main(ip_address,port)

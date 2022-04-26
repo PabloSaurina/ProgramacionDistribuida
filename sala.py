@@ -227,7 +227,7 @@ if __name__=='__main__':
     port = 7000
     if len(sys.argv)>1:
         ip_address = sys.argv[1]
-    if ñen(sys.argv)>2:
+    if len(sys.argv)>2:
         port=sys.argv[2]
 
     main(ip_address,port)
