@@ -82,13 +82,16 @@ class PlayerSprite(pg.sprite.Sprite):
         self.player = player
         self.groups = self.game.all_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
-        self.original_image = pg.Surface((TILESIZE, TILESIZE),pg.SRCALPHA)
-#        self.original_image = pg.image.load("mierda.png")
-        self.image = self.original_image
+#        self.original_image = pg.Surface((TILESIZE, TILESIZE),pg.SRCALPHA)
         if self.player.team == 0:
-            self.image.fill(BLUE)
+            self.original_image = pg.transform.scale(pg.image.load("Algo2.png"),(TILESIZE,TILESIZE))
         else:
-            self.image.fill(RED)
+            self.original_image = pg.transform.scale(pg.image.load("Algo3.png"),(TILESIZE,TILESIZE))
+        self.image = self.original_image
+#        if self.player.team == 0:
+#            self.image.fill(BLUE)
+#        else:
+#            self.image.fill(RED)
         self.rect = self.image.get_rect()
         self.hit_rect = PLAYER_HIT_RECT
         self.hit_rect.center = self.rect.center
