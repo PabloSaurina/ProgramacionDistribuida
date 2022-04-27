@@ -13,7 +13,10 @@ def collide_hit_rect(one, two):
     return one.hit_rect.colliderect(two.rect)
 
 class Player():
-    def __init__(self, g_team, x, y,team,dt):
+    def __init__(self, g_team, respawns,team,dt):
+        self.respawn_pos = respawns
+        x = respawns[0][0]
+        y = respawns[0][1]
         self.team = team
         self.gteam = g_team
         self.dt = dt
@@ -21,7 +24,6 @@ class Player():
         self.vel = vec(0, 0)
         self.pos = vec(x, y) * TILESIZE
         self.rot = 0
-        self.respawn_pos = [self.pos[0],self.pos[1],0]
         
     def get_keys(self):
         if(self.gteam == self.team):
@@ -79,7 +81,10 @@ class Player():
         self.rot = pos[2]
     
     def respawn(self):
-        self.set_pos(self.respawn_pos)
+        i = randrange(len(self.respawn_pos))
+        self.pos.x = self.respawn_pos[i][0] * TILESIZE
+        self.pos.y = self.respawn_pos[i][1] * TILESIZE
+        self.rot = 0
 
 class PlayerSprite(pg.sprite.Sprite):
     def __init__(self,player,game):
@@ -183,16 +188,25 @@ class Game():
         
         self.all_sprites = pg.sprite.Group()
         self.walls = pg.sprite.Group()
+        self.respawns1 = []
+        self.respawns2 = []
         for row, tiles in enumerate(self.map.data):
             for col, tile in enumerate(tiles):
                 if tile == '1':
                     Wall(self, col, row)
                 elif tile == 'P':
-                    self.player1 = [Player(self.team, col, row,0,self.dt)]
-                    self.sprite1 = PlayerSprite(self.player1[0],self)
+                    self.respawns1.append([col,row])
+#                    self.player1 = [Player(self.team, col, row,0,self.dt)]
+#                    self.sprite1 = PlayerSprite(self.player1[0],self)
                 elif tile == 'Q':
-                    self.player2 = [Player(self.team, col, row,1,self.dt)]
-                    self.sprite2 = PlayerSprite(self.player2[0],self)
+                    self.respawns2.append([col,row])
+        
+        
+        self.player1 = [Player(self.team, self.respawns1,0,self.dt)]
+        self.sprite1 = PlayerSprite(self.player1[0],self)
+        self.player2 = [Player(self.team, self.respawns2,1,self.dt)]
+        self.sprite2 = PlayerSprite(self.player2[0],self)
+        
         self.players = [self.player1,self.player2]
         self.p_sprites = [self.sprite2,self.sprite1]
         self.bullets = []
