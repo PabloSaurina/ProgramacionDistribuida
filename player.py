@@ -21,7 +21,8 @@ class Player():
         self.vel = vec(0, 0)
         self.pos = vec(x, y) * TILESIZE
         self.rot = 0
-
+        self.respawn_pos = [self.pos[0],self.pos[1],0]
+        
     def get_keys(self):
         if(self.gteam == self.team):
             self.rot_speed = 0
@@ -76,6 +77,9 @@ class Player():
         self.pos.x = pos[0]
         self.pos.y = pos[1]
         self.rot = pos[2]
+    
+    def respawn(self):
+        self.set_pos(self.respawn_pos)
 
 class PlayerSprite(pg.sprite.Sprite):
     def __init__(self,player,game):
@@ -196,13 +200,14 @@ class Game():
         self.last_shot = pg.time.get_ticks()
         self.other_bullets = []
         self.other_bullets_sprites = []
+        self.ammo = AMMO
         self.score = [0,0]
         self.max_health = 100
         self.health = self.max_health
         self.enemy_health = self.max_health
         self.ppoints = 0
-        self.ammo = AMMO
-
+        self.respawns = 0
+        
     def load_data(self):
         game_folder = path.dirname(__file__)
         self.map = Map(path.join(game_folder, 'map3.txt'))
@@ -307,10 +312,16 @@ class Game():
             self.player1[0].update(self.sprite1,self.walls)
             self.player2[0].set_pos(info['pos_red_player'])
             self.adjust_other_bullets(info['bullets2'])
+            if self.score[1] > self.respawns:
+                self.player1[0].respawn()
+                self.respawns += 1
         if self.team == 1:
             self.player2[0].update(self.sprite2,self.walls)
             self.player1[0].set_pos(info['pos_blue_player'])
             self.adjust_other_bullets(info['bullets1'])
+            if self.score[0] > self.respawns:
+                self.player2[0].respawn()
+                self.respawns += 1
         for i in range(len(self.bullets)):
             bull = self.bullets[i]
             bull.update(self.bullets_sprites[i],self.walls,self.p_sprites[self.team])
@@ -364,6 +375,7 @@ class Game():
     
     def get_score(self):
         return self.score
+    
     
 class Display():
     
