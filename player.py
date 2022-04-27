@@ -196,8 +196,6 @@ class Game():
                     Wall(self, col, row)
                 elif tile == 'P':
                     self.respawns1.append([col,row])
-#                    self.player1 = [Player(self.team, col, row,0,self.dt)]
-#                    self.sprite1 = PlayerSprite(self.player1[0],self)
                 elif tile == 'Q':
                     self.respawns2.append([col,row])
         
@@ -329,6 +327,7 @@ class Game():
             if self.score[1] > self.respawns:
                 self.player1[0].respawn()
                 self.respawns += 1
+                self.ammo = AMMO
         if self.team == 1:
             self.player2[0].update(self.sprite2,self.walls)
             self.player1[0].set_pos(info['pos_blue_player'])
@@ -336,6 +335,7 @@ class Game():
             if self.score[0] > self.respawns:
                 self.player2[0].respawn()
                 self.respawns += 1
+                self.ammo = AMMO
         for i in range(len(self.bullets)):
             bull = self.bullets[i]
             bull.update(self.bullets_sprites[i],self.walls,self.p_sprites[self.team])
