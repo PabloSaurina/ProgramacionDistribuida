@@ -92,6 +92,7 @@ class Player():
         self.collide_with_op('x',sprite,op)
         sprite.hit_rect.centery = self.pos.y
         self.collide_with_walls('y',sprite,walls)
+        self.collide_with_op('y',sprite,op)
         sprite.rect.center = sprite.hit_rect.center
     
     def get_pos(self):
