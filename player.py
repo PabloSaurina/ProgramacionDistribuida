@@ -15,8 +15,9 @@ def collide_hit_rect(one, two):
 class Player():
     def __init__(self, g_team, respawns,team,dt):
         self.respawn_pos = respawns
-        x = respawns[0][0]
-        y = respawns[0][1]
+        i = randrange(len(self.respawn_pos))
+        x = respawns[i][0]
+        y = respawns[i][1]
         self.team = team
         self.gteam = g_team
         self.dt = dt
@@ -58,8 +59,28 @@ class Player():
                     self.pos.y = hits[0].rect.bottom + sprite.hit_rect.height / 2
                 self.vel.y = 0
                 sprite.hit_rect.centery = self.pos.y
+                
+    def collide_with_op(self, dir,sprite,op):
+        if dir == 'x':
+            hits = pg.sprite.spritecollide(sprite, [op], False,collide_hit_rect)
+            if hits:
+                if hits[0].rect.centerx > sprite.hit_rect.centerx:
+                    self.pos.x = hits[0].rect.left - sprite.hit_rect.width / 2
+                if hits[0].rect.centerx < sprite.hit_rect.centerx:
+                    self.pos.x = hits[0].rect.right + sprite.hit_rect.width / 2
+                self.vel.x = 0
+                sprite.hit_rect.centerx = self.pos.x
+        if dir == 'y':
+            hits = pg.sprite.spritecollide(sprite, [op], False,collide_hit_rect)
+            if hits:
+                if hits[0].rect.centery > sprite.hit_rect.centery:
+                    self.pos.y = hits[0].rect.top - sprite.hit_rect.height / 2
+                if hits[0].rect.centery < sprite.hit_rect.centery:
+                    self.pos.y = hits[0].rect.bottom + sprite.hit_rect.height / 2
+                self.vel.y = 0
+                sprite.hit_rect.centery = self.pos.y
 
-    def update(self,sprite,walls):
+    def update(self,sprite,walls,op):
         self.get_keys()
         self.rot = (self.rot + self.rot_speed * self.dt) % 360
         sprite.image = pg.transform.rotate(sprite.original_image, self.rot)
@@ -68,6 +89,7 @@ class Player():
         self.pos += self.vel * self.dt
         sprite.hit_rect.centerx = self.pos.x
         self.collide_with_walls('x',sprite,walls)
+        self.collide_with_op('x',sprite,op)
         sprite.hit_rect.centery = self.pos.y
         self.collide_with_walls('y',sprite,walls)
         sprite.rect.center = sprite.hit_rect.center
@@ -321,7 +343,7 @@ class Game():
         self.score = info['score']
         self.health = info['health'][self.team]
         if self.team == 0:
-            self.player1[0].update(self.sprite1,self.walls)
+            self.player1[0].update(self.sprite1,self.walls,self.sprite2)
             self.player2[0].set_pos(info['pos_red_player'])
             self.adjust_other_bullets(info['bullets2'])
             if self.score[1] > self.respawns:
@@ -329,7 +351,7 @@ class Game():
                 self.respawns += 1
                 self.ammo = AMMO
         if self.team == 1:
-            self.player2[0].update(self.sprite2,self.walls)
+            self.player2[0].update(self.sprite2,self.walls,self.sprite1)
             self.player1[0].set_pos(info['pos_blue_player'])
             self.adjust_other_bullets(info['bullets1'])
             if self.score[0] > self.respawns:
