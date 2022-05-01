@@ -86,7 +86,7 @@ class Game():
 
     def load_data(self):
         game_folder = path.dirname(__file__)
-        self.map = Map(path.join(game_folder, 'map2.txt'))
+        self.map = Map(path.join(game_folder, 'map3.txt'))
 
     def run(self):
         # game loop - set self.playing = False to end the game
